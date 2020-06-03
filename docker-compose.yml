@@ -12,7 +12,9 @@ services:
       - "./www:/var/www/html"
     ports:
       - "80:80"
+      - "88:88"
       - "443:443"
+      - "8443:8443"
     restart: unless-stopped
     depends_on:
       - php
@@ -79,6 +81,13 @@ services:
   #  volumes:
   #    - "./www/web2:/app"
 
-  # web3, 4, ...
-
-
+  # load dependencies for bots on deploy
+  # path: www/bots/api/composer.json
+  composer-bots:
+    build:
+      context: ./composer
+      dockerfile: Dockerfile
+    container_name: composer-bots
+    user: ${CURRENT_UID}
+    volumes:
+      - "./www/bots/api:/app"

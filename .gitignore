@@ -11,3 +11,5 @@ nginx/ssl
 /test.sh
 
 0]
+
+composer.lock

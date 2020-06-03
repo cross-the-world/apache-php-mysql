@@ -1,5 +1,11 @@
 # NGINX PHP PHPMYADMIN MYSQL COMPOSER
 
+## Hosting
+[web1](???)
+[web2](???)
+[bots](???)
+[phpmyadmin](???)
+
 
 ## Pre-Install
 
