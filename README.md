@@ -9,6 +9,20 @@
 
 ## Pre-Install
 
+### Python 
+[Install guide](https://www.digitalocean.com/community/tutorials/how-to-install-python-3-and-set-up-a-programming-environment-on-an-ubuntu-20-04-server)
+```
+sudo apt-get update && sudo apt-get -y upgrade
+
+# check python version
+python3 --version
+
+# basic packages
+sudo apt install -y python3-pip
+sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev
+
+```
+
 ### Docker
 [Docker on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04)
 
@@ -18,7 +32,7 @@ After that, allow docker run without sudo and add allowed users to docker group
 # sudo user, ref. https://www.digitalocean.com/community/tutorials/how-to-create-a-sudo-user-on-ubuntu-quickstart
 sudo adduser github
 # rights for user
-sudo chmod 777 -R /var/runner
+sudo chmod 777 -R /var/run
 sudo chmod 777 -R /tmp
 # ...
 
@@ -55,8 +69,24 @@ docker run -it --name github-runner \
     -v /var/run/docker.sock:/var/run/docker.sock \
     thuong/github-runner:latest
 ```
-**Open** [https://github.com/organizations/name/settings/actions](https://github.com/organizations/name/settings/actions) and check whether runner is ready
+**Open** [https://github.com/organizations/name/settings/actions](https://github.com/organizations/name/settings/actions) 
+and check whether runner is ready
 
+**SSH**
+```
+ref. https://www.howtogeek.com/168119/fixing-warning-unprotected-private-key-file-on-linux/
+su - github
+
+ssh-keygen
+
+# ~/.ssh/id_rsa for github secret setting
+cat ~/.ssh/id_rsa > ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa.pub
+
+su - root
+sudo systemctl restart ssh
+```
 
 
 ## Secrets
@@ -72,10 +102,9 @@ DC_KEY
 #DC_PASS
 
 ## certificates to support https
-#written to ./nginx/ssl/server.pem, mount to nginx-container /etc/nginx/ssl/server.pem
-SERVER_PEM 
-#written to ./nginx/ssl/server.key, mount to nginx-container /etc/nginx/ssl/server.key
-SERVER_KEY 
+#written to ./nginx/ssl/[site]/server.pem, mount to nginx-container /etc/nginx/ssl/*
+#written to ./nginx/ssl/[site]/server.key, mount to nginx-container /etc/nginx/ssl/*
+SSL 
 
 ## php mysql config
 # written to ./nginx/conf.d/credentials.conf, mount to nginx-container /etc/nginx/conf.d/
@@ -86,10 +115,9 @@ PHP_PARAMS
 PMA_ABSOLUTE_URI
 
 ## basic auth before opening site
-# written to ./nginx/conf.d/*, mount to nginx-container /etc/nginx/conf.d/
-#using on loading site A with basic auth
+# written to ./nginx/conf.d/.[site]passwd, mount to nginx-container /etc/nginx/conf.d/
+#using on loading site with basic auth
 SITE_AUTH_A 
-#using on loading site B with basic auth
 SITE_AUTH_B 
 # ...
 
@@ -318,15 +346,22 @@ Under "./.github/worflows/deploy.yml"
     * PHP_PARAMS to ./nginx/conf.d/credentials.conf
     * SERVER_KEY to ./nginx/ssl/server.key
     * SERVER_PEM to ./nginx/ssl/server.pem
+* SSH create tmp dir 
+    * TMP_DIR: ~/tmp/[organization]/[repo name]
 * Copy "." (all sources) to server, per scp, with secrets: DC_HOST, DC_KEY, DC_PORT, DC_USER
     * TARGET: ~/[organization]/[repo name]
 * Backup all database from mysql container
     * TARGET: ~/[organization]/[repo name]/mysql/backup
     * CMD: "docker exec mysql /usr/bin/mysqldump --all-databases -u"root" -p"$MYSQL_ROOT_PASSWORD" > $MYSQL_DUMPS_DIR/all_backups.sql 2>/dev/null || true"
+* Generate configs
+    * GENERATE_SCRIPT: TARGET/generate_configs.sh
+    * ssl/sites/ssl.json -> ssl/sites/[site]/server.[pem|key]
+    * conf.d/sites/auth.json -> conf.d/sites/.[site]passwd
 * Deploy new docker containers
     * Build: "docker-compose build --no-cache"                                                  
     * Remove: "docker-compose rm -f -s"
     * Create: "docker-compose up --renew-anon-volumes -d"
+    * Remove TMP_DIR
 * Allow permisson on target directory in server
     * TARGET: ~/[organization]/[repo name]
     * RESTORE_SCRIPT: TARGET/wait_for_restore.sh

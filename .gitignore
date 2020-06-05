@@ -2,11 +2,16 @@ mysql/init/*.sql
 mysql/init/*.sh
 mysql/data
 mysql/backup/*.sql
-nginx/conf.d/*.conf
-nginx/ssl
+nginx/conf.d/**/*.conf
+nginx/conf.d/**/*.*passwd
+nginx/conf.d/**/*.json
+nginx/ssl/**/*.key
+nginx/ssl/**/*.pem
+nginx/ssl/**/*.json
 
 .idea
 .env
+.pmapasswd
 
 /test.sh
 
