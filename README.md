@@ -102,8 +102,8 @@ DC_KEY
 #DC_PASS
 
 ## certificates to support https
-#written to ./nginx/ssl/[site]/server.pem, mount to nginx-container /etc/nginx/ssl/*
-#written to ./nginx/ssl/[site]/server.key, mount to nginx-container /etc/nginx/ssl/*
+#written to ./nginx/ssl/[wsite]/server.pem, mount to nginx-container /etc/nginx/ssl/*
+#written to ./nginx/ssl/[wsite]/server.key, mount to nginx-container /etc/nginx/ssl/*
 SSL 
 
 ## php mysql config
@@ -115,7 +115,7 @@ PHP_PARAMS
 PMA_ABSOLUTE_URI
 
 ## basic auth before opening site
-# written to ./nginx/conf.d/.[site]passwd, mount to nginx-container /etc/nginx/conf.d/
+# written to ./nginx/conf.d/[wsites]/.[site]passwd, mount to nginx-container /etc/nginx/conf.d/
 #using on loading site with basic auth
 SITE_AUTH_A 
 SITE_AUTH_B 
@@ -355,8 +355,8 @@ Under "./.github/worflows/deploy.yml"
     * CMD: "docker exec mysql /usr/bin/mysqldump --all-databases -u"root" -p"$MYSQL_ROOT_PASSWORD" > $MYSQL_DUMPS_DIR/all_backups.sql 2>/dev/null || true"
 * Generate configs
     * GENERATE_SCRIPT: TARGET/generate_configs.sh
-    * ssl/sites/ssl.json -> ssl/sites/[site]/server.[pem|key]
-    * conf.d/sites/auth.json -> conf.d/sites/.[site]passwd
+    * ssl/sites/ssl.json -> ssl/sites/[wsite]/server.[pem|key]
+    * conf.d/sites/auth.json -> conf.d/sites/.[wsite]passwd
 * Deploy new docker containers
     * Build: "docker-compose build --no-cache"                                                  
     * Remove: "docker-compose rm -f -s"
