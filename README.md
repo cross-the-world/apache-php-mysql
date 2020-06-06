@@ -102,8 +102,8 @@ DC_KEY
 #DC_PASS
 
 ## certificates to support https
-#written to ./nginx/ssl/[wsite]/server.pem, mount to nginx-container /etc/nginx/ssl/*
-#written to ./nginx/ssl/[wsite]/server.key, mount to nginx-container /etc/nginx/ssl/*
+#written to ./nginx/ssl/wsites/[site].pem, mount to nginx-container /etc/nginx/ssl/*
+#written to ./nginx/ssl/wsites/[site].key, mount to nginx-container /etc/nginx/ssl/*
 SSL 
 
 ## php mysql config
@@ -113,6 +113,7 @@ PHP_PARAMS
 
 ## phpmyadmin abs uri
 PMA_ABSOLUTE_URI
+# e.g. https://pma.xxx/ubuntu-s-4vcpu-8gb-sfo2-01
 
 ## basic auth before opening site
 # written to ./nginx/conf.d/[wsites]/.[site]passwd, mount to nginx-container /etc/nginx/conf.d/
@@ -186,6 +187,33 @@ fastcgi_param web1 'mysql:a_db:a_user:a_passwd';
 fastcgi_param web2 'mysql:b_db:b_user:b_passwd';
 ``` 
 
+##### SSL
+e.g.
+```json
+{
+  "cloudflare": {
+    "pem": "-----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----"
+  },
+  "domain": {
+    "key": "-----BEGIN PRIVATE KEY-----xxx-----END PRIVATE KEY-----",
+    "pem": "-----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----"
+  }
+}
+```
+
+##### SITE_AUTH
+```
+# create user:htpasswd for user
+htpasswd -n user
+# output [user]:[htpasswd]
+```
+
+e.g.
+```json
+{
+  "domain": "[user]:[htpasswd]"
+}
+```
 
 
 ## Configuration
@@ -305,9 +333,9 @@ if the site xxx e.g. uses "composer" for such thing
 # e.g. macos
 sudo nano /etc/hosts
 # Add these line and uncomment and save
-#127.0.0.1       techignite.ga
-#127.0.0.1       web1.techignite.ga
-#127.0.0.1       web2.techignite.ga
+#127.0.0.1       domain
+#127.0.0.1       web1.domain
+#127.0.0.1       web2.domain
 
 ## Goto source folder
 cd [src folder]
@@ -323,9 +351,9 @@ docker-compose rm -fs
 docker-compose up --renew-anon-volumes -d
 
 ## Open browser and check
-# web1.techignite.ga
-# web2.techignite.ga
-# techignite.ga/phpmyadmin ## user: root, pass: your secret MYSQL_ROOT_PASSWORD
+# web1.domain
+# web2.domain
+# domain/phpmyadmin ## user: root, pass: your secret MYSQL_ROOT_PASSWORD
 ```
 
 ### Auto-deploy
@@ -351,12 +379,12 @@ Under "./.github/worflows/deploy.yml"
 * Copy "." (all sources) to server, per scp, with secrets: DC_HOST, DC_KEY, DC_PORT, DC_USER
     * TARGET: ~/[organization]/[repo name]
 * Backup all database from mysql container
-    * TARGET: ~/[organization]/[repo name]/mysql/backup
+    * TARGET: ~/backup/mysql
     * CMD: "docker exec mysql /usr/bin/mysqldump --all-databases -u"root" -p"$MYSQL_ROOT_PASSWORD" > $MYSQL_DUMPS_DIR/all_backups.sql 2>/dev/null || true"
 * Generate configs
     * GENERATE_SCRIPT: TARGET/generate_configs.sh
-    * ssl/sites/ssl.json -> ssl/sites/[wsite]/server.[pem|key]
-    * conf.d/sites/auth.json -> conf.d/sites/.[wsite]passwd
+    * ssl/sites/ssl.json -> ssl/wsites/[site].[pem|key]
+    * conf.d/sites/auth.json -> conf.d/wsites/.[site]passwd
 * Deploy new docker containers
     * Build: "docker-compose build --no-cache"                                                  
     * Remove: "docker-compose rm -f -s"
@@ -366,7 +394,7 @@ Under "./.github/worflows/deploy.yml"
     * TARGET: ~/[organization]/[repo name]
     * RESTORE_SCRIPT: TARGET/wait_for_restore.sh
 * Restore all backup database to the new mysql container
-    * SOURCE: ~/[organization]/[repo name]/mysql/backup/all_backup.sql
+    * SOURCE: ~/backup/mysql/all_backup.sql
     * CMD: "docker exec -i mysql /usr/bin/mysql -u"root" -p"$MYSQL_ROOT_PASSWORD" < $MYSQL_DUMPS_DIR/all_backups.sql 2>/dev/null || true"
 
     

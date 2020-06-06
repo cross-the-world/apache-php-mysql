@@ -17,28 +17,25 @@ def mk_dir(dir_name):
 # /nginx/ssl/ssl.json
 # parse json file to key, pem for each site under "/nginx/ssl/[site]/*.[key|pem]"
 try:
-    ssl_dir = "nginx/ssl/wsites"
+    ssl_dir = "./nginx/ssl/wsites"
     remove_subdirs(ssl_dir)
     mk_dir(ssl_dir)
     with open(os.path.join(ssl_dir, "ssl.json"), "r") as ssl_in:
         ssl = json.load(ssl_in)
         if ssl:
             print("Loaded ssl configs")
-            rsa = ssl.get("rsa_cloudflare")
-            rsa = rsa if rsa else ''
             for site, cert in ssl.items():
-                if "rsa_cloudflare" == site:
-                    continue
-                dir_name = os.path.join(ssl_dir, site)
-                mk_dir(dir_name)
-                with open(os.path.join(dir_name, "server.pem"), "w") as pem:
-                    p_cert = cert.get('pem')
-                    pem.write(f"{p_cert if p_cert else ''}{rsa}")
-                    print(f"Written {dir_name}/server.pem")
-                with open(os.path.join(dir_name, "server.key"), "w") as key:
-                    k_cert = cert.get('key', '')
-                    key.write(k_cert if k_cert else '')
-                    print(f"Written {dir_name}/server.key")
+                p_cert = cert.get('pem')
+                if p_cert:
+                    with open(os.path.join(ssl_dir, f"{site}.pem"), "w") as pem:
+                        pem.write(p_cert)
+                        print(f"Written {ssl_dir}/{site}.pem")
+                k_cert = cert.get('key', '')
+                if k_cert:
+                    with open(os.path.join(ssl_dir, f"{site}.key"), "w") as key:
+                        key.write(k_cert)
+                        print(f"Written {ssl_dir}/{site}.key")
+    os.remove(os.path.join(ssl_dir, "ssl.json"))
 except Exception as e:
     print(e)
 
@@ -46,7 +43,7 @@ except Exception as e:
 # /nginx/conf.d/auth.json
 # parse json auth for each site under "nginx/conf.d/.[site]passwd
 try:
-    conf_dir = "nginx/conf.d/wsites"
+    conf_dir = "./nginx/conf.d/wsites"
     remove_subdirs(conf_dir)
     mk_dir(conf_dir)
     with open(os.path.join(conf_dir, "auth.json"), "r") as auth_in:
@@ -56,11 +53,10 @@ try:
             for site, passwd in auth.items():
                 if not passwd:
                     continue
-                dir_name = os.path.join(conf_dir, site)
-                mk_dir(dir_name)
-                with open(os.path.join(dir_name, f".{site}passwd"), "w") as p:
+                with open(os.path.join(conf_dir, f".{site}passwd"), "w") as p:
                     p.write(passwd)
-                    print(f"Written {dir_name}/.{site}passwd")
+                    print(f"Written {conf_dir}/.{site}passwd")
+    os.remove(os.path.join(conf_dir, "auth.json"))
 except Exception as e:
     print(e)
 
