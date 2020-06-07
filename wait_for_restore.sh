@@ -6,7 +6,6 @@
 #$5 backup file
 
 echo "mysql binding ..."
-echo $1 $2 $3 $4
 
 until mysql -h $1 -P $2 -u"$3" -p"$4" --protocol=tcp -e "SHOW DATABASES;"; do
   >&2 echo "mysql UNAVAILABLE - sleeping 10s"
