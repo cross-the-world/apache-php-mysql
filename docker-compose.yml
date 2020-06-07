@@ -61,24 +61,33 @@ services:
       - "3306:3306"
 
   # install modules for codeigniter
-  composer-web1:
+  composer-fantomviet:
     build:
       context: ./composer
       dockerfile: Dockerfile
-    container_name: composer-web1
+    container_name: composer-fantomviet
     user: ${CURRENT_UID}
     volumes:
-      - "./www/web1:/app"
+      - "./www/fantomviet:/app"
 
-  #composer-web2:
-  #  build:
-  #      context: ./composer
-  #      dockerfile: Dockerfile
-  #  container_name: composer-web1
-  #  user: ${CURRENT_UID}
-  #  volumes:
-  #    - "./www/web2:/app"
+  composer-vietnamhat:
+    build:
+      context: ./composer
+      dockerfile: Dockerfile
+    container_name: composer-vietnamhat
+    user: ${CURRENT_UID}
+    volumes:
+      - "./www/vietnamhat:/app"
 
+  composer-79btc:
+    build:
+      context: ./composer
+      dockerfile: Dockerfile
+    container_name: composer-79btc
+    user: ${CURRENT_UID}
+    volumes:
+      - "./www/79btc:/app"
+      
   # load dependencies for bots on deploy
   # path: www/bots/api/composer.json
   composer-bots:
