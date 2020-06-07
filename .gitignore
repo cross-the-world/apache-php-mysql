@@ -1,15 +1,17 @@
 .DS_Store
 
+nginx
+
 mysql/init/*.sql
 mysql/init/*.sh
 mysql/data
 mysql/backup/*.sql
-nginx/conf.d/**/*.conf
-nginx/conf.d/**/*.*passwd
-nginx/conf.d/**/*.json
-nginx/ssl/**/*.key
-nginx/ssl/**/*.pem
-nginx/ssl/**/*.json
+**/conf.d/**/*.conf
+**/conf.d/**/*.*passwd
+**/conf.d/**/*.json
+**/ssl/**/*.key
+**/ssl/**/*.pem
+**/ssl/**/*.json
 www/phpmyadmin
 
 .idea

@@ -14,10 +14,10 @@ def mk_dir(dir_name):
         print(f"Created directory {dir_name}")
 
 
-# /nginx/ssl/ssl.json
+# ./apache/ssl/ssl.json
 # parse json file to key, pem for each site under "/nginx/ssl/[site]/*.[key|pem]"
 try:
-    ssl_dir = "./nginx/ssl/wsites"
+    ssl_dir = "./apache/ssl/wsites"
     remove_subdirs(ssl_dir)
     mk_dir(ssl_dir)
     with open(os.path.join(ssl_dir, "ssl.json"), "r") as ssl_in:
@@ -40,10 +40,10 @@ except Exception as e:
     print(e)
 
 
-# /nginx/conf.d/auth.json
+# ./apache/conf.d/auth.json
 # parse json auth for each site under "nginx/conf.d/.[site]passwd
 try:
-    conf_dir = "./nginx/conf.d/wsites"
+    conf_dir = "./apache/conf.d/wsites"
     remove_subdirs(conf_dir)
     mk_dir(conf_dir)
     with open(os.path.join(conf_dir, "auth.json"), "r") as auth_in:

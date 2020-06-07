@@ -1,10 +1,22 @@
 # NGINX PHP PHPMYADMIN MYSQL COMPOSER
 
 ## Hosting
-[web1](???)
-[web2](???)
-[bots](???)
-[phpmyadmin](???)
+**Database management on server "nginx-docker"**
+
+[phpmyadmin](https://pma.crossworld.ga/nginx-docker/)
+
+**Bots**
+
+[bots.79btc.com](https://bots.79btc.com)
+
+**Websites**
+
+[fantomviet.com](https://fantomviet.79btc.com)
+
+[vietnamnhat.com](https://vietnamnhat.79btc.com)
+
+[79btc.com](https://79btc.com)
+
 
 
 ## Pre-Install
@@ -23,27 +35,71 @@ sudo apt-get install -y build-essential libssl-dev libffi-dev python3-dev
 
 ```
 
+### User github
+```
+## allow ssh,
+sudo nano /etc/ssh/sshd_config
+# Update content, uncomment/add
+-> Port 25000 # or any another port
+-> PermitRootLogin no
+-> AllowUsers github
+-> PubkeyAuthentication yes
+-> AuthorizedKeysFile	.ssh/authorized_keys .ssh/authorized_keys2
+# generate sshd dir
+sudo mkdir /var/run/sshd/
+# restart ssh
+sudo systemctl restart ssh
+# restart server
+shutdown -r now
+
+## create user
+# sudo user, ref. https://www.digitalocean.com/community/tutorials/how-to-create-a-sudo-user-on-ubuntu-quickstart
+sudo adduser github
+sudo usermod -aG root github
+sudo usermod -aG sudo github
+# generate key
+cd ~
+ssh-keygen
+cat ~/.ssh/id_rsa > ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa.pub
+# copy ~/.ssh/id_rsa to local, save under ~/.ssh/github_xxx
+# On local machine
+chmod -R 600 ~/.ssh/github_xxx
+# restart ssh
+sudo systemctl restart ssh
+# restart server
+shutdown -r now
+# check ssh
+ssh github@ip -p 25000 -i ~/.ssh/github_xxx
+```
+
+### Mysql client
+```
+sudo apt install mysql-client-core-8.0 # Ubuntu 20.04
+```
+
 ### Docker
 [Docker on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-20-04)
 
 After that, allow docker run without sudo and add allowed users to docker group
 ```
-# create user
-# sudo user, ref. https://www.digitalocean.com/community/tutorials/how-to-create-a-sudo-user-on-ubuntu-quickstart
-sudo adduser github
-# rights for user
-sudo chmod 777 -R /var/run
-sudo chmod 777 -R /tmp
-# ...
-
-# add to docker group
+## add to docker group
 sudo usermod -aG docker github
+# check group
+groups github
 # login to github
 su - github
 # check github in docker group
 id -nG
 # docker helps without sudo
 docker --help
+
+# rights for user
+sudo chmod 777 -R /var/run
+sudo chmod 777 -R /tmp
+# ...
+
 ```
 
 ### Github-runner
@@ -79,7 +135,7 @@ su - github
 
 ssh-keygen
 
-# ~/.ssh/id_rsa for github secret setting
+# ~/.ssh/id_rsa for DC_KEY of github secret setting
 cat ~/.ssh/id_rsa > ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/id_rsa
 chmod 600 ~/.ssh/id_rsa.pub
@@ -216,8 +272,10 @@ e.g.
 ```
 
 
-## Configuration
+## New site
 for a NEW WEBSITE xxx
+
+##### Configurations
 * Source code must be under "./www/xxx"
 * Nginx proxy configuration "./nginx/sites-available/xxx.conf", ref."./nginx/sites-available/A.conf" (considering http/https)
     ```
@@ -321,7 +379,7 @@ if the site xxx e.g. uses "composer" for such thing
         #but are mounted by the volumn outsite. 
         #It should be synced from inside to outside 
         #and used in nginx and php containers.
-        - "./www/web2:/app" 
+        - "./www/xxx:/app" 
     ```
 
 

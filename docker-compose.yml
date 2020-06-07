@@ -2,11 +2,11 @@ version: '3.7'
 
 services:
 
-  nginx:
+  apache:
     build:
-      context: ./nginx
+      context: ./apache
       dockerfile: Dockerfile
-    container_name: nginx
+    container_name: apache
     working_dir: /var/www/html
     volumes:
       - "./www:/var/www/html"
