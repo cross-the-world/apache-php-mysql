@@ -40,11 +40,11 @@ jobs:
           mkdir -p ./mysql/init &&
           echo "$MYSQL_INIT" > ./mysql/init/init.sql &&
           echo "$MYSQL_TEST" > ./mysql/init/test.sh &&
-          mkdir -p ./nginx/conf.d/wsites &&
-          echo "$PHP_PARAMS" > ./nginx/conf.d/credentials.conf &&
-          echo "$SITE_AUTH" > ./nginx/conf.d/wsites/auth.json &&
-          mkdir -p ./nginx/ssl/wsites &&
-          echo "$SSL" > ./nginx/ssl/wsites/ssl.json
+          mkdir -p ./apache/conf.d/wsites &&
+          echo "$PHP_PARAMS" > ./apache/conf.d/credentials.conf &&
+          echo "$SITE_AUTH" > ./apache/conf.d/wsites/auth.json &&
+          mkdir -p ./apache/ssl/wsites &&
+          echo "$SSL" > ./apache/ssl/wsites/ssl.json
 
       - name: Create tmp dir on digitalocean
         uses: appleboy/ssh-action@master
@@ -74,8 +74,8 @@ jobs:
         shell: bash
         run: |
           rm -rf ./mysql/init &&
-          rm -rf ./nginx/conf.d &&
-          rm -rf ./nginx/ssl
+          rm -rf ./apache/conf.d &&
+          rm -rf ./apache/ssl
 
       - name: Backup database on digitalocean
         uses: appleboy/ssh-action@master
@@ -126,8 +126,7 @@ jobs:
             docker-compose build --no-cache &&
             mkdir -p $TARGET && cd $TARGET &&
             (docker-compose rm -f -s || true) &&
-            (rm -rf ./* || true) &&
-            mv $TMP_DIR/* $TARGET/ &&
+            cp -rf $TMP_DIR/* $TARGET/ &&
             docker-compose up --renew-anon-volumes -d &&
             (rm -rf $TMP_DIR || true)
 

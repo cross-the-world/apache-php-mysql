@@ -6,11 +6,10 @@ RUN docker-php-ext-install mysqli pdo pdo_mysql
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 RUN useradd -m -G root github
-RUN chmod -R 777 /usr/local/etc/php
-RUN chmod -R 777 /var/www/html
+RUN chmod -R 777 /usr
 
 COPY ./php.ini /usr/local/etc/php/conf.d/php.ini
 
-WORKDIR /var/www/html
+WORKDIR /usr/local/apache2/htdocs
 
 EXPOSE 9000

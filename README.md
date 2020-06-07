@@ -1,4 +1,4 @@
-# NGINX PHP PHPMYADMIN MYSQL COMPOSER
+# APACHE2 PHP PHPMYADMIN MYSQL COMPOSER
 
 ## Hosting
 **Database management on server "nginx-docker"**
@@ -8,6 +8,8 @@
 **Bots**
 
 [bots.79btc.com](https://bots.79btc.com)
+[bot tramanh](https://bots.79btc.com/tramanh)
+
 
 **Websites**
 
@@ -158,12 +160,12 @@ DC_KEY
 #DC_PASS
 
 ## certificates to support https
-#written to ./nginx/ssl/wsites/[site].pem, mount to nginx-container /etc/nginx/ssl/*
-#written to ./nginx/ssl/wsites/[site].key, mount to nginx-container /etc/nginx/ssl/*
+#written to ./apache/ssl/wsites/[site].pem, mount to apache-container /usr/local/apache2/conf/certs/*.pem
+#written to ./apache/ssl/wsites/[site].key, mount to apache-container /usr/local/apache2/conf/certs/*.key
 SSL 
 
 ## php mysql config
-# written to ./nginx/conf.d/credentials.conf, mount to nginx-container /etc/nginx/conf.d/
+# written to ./apache/conf.d/credentials.conf, mount to apache-container /usr/local/apache2/conf/php-params/
 # where using as params under $_SERVER in php
 PHP_PARAMS 
 
@@ -172,17 +174,15 @@ PMA_ABSOLUTE_URI
 # e.g. https://pma.xxx/ubuntu-s-4vcpu-8gb-sfo2-01
 
 ## basic auth before opening site
-# written to ./nginx/conf.d/[wsites]/.[site]passwd, mount to nginx-container /etc/nginx/conf.d/
+# written to ./apache/conf.d/[wsites]/.[site]passwd, mount to apache-container /usr/local/apache2/conf/passwd/
 #using on loading site with basic auth
-SITE_AUTH_A 
-SITE_AUTH_B 
-# ...
+SITE_AUTH
 
 ## mysql params
-# written to ./mysql/init/init.sql, mount to nginx-container /docker-entrypoint-initdb.d/
+# written to ./mysql/init/init.sql, mount to mysql-container /docker-entrypoint-initdb.d/
 # initialize database and privilliges for sites A,B,...
 MYSQL_INIT 
-# written to ./mysql/init/test.sql, mount to nginx-container /docker-entrypoint-initdb.d/
+# written to ./mysql/init/test.sql, mount to mysql-container /docker-entrypoint-initdb.d/
 # test whether sql script on triggered
 MYSQL_TEST
 # root pwd, e.g secret
@@ -192,15 +192,81 @@ MYSQL_ROOT_PASSWORD
 MYSQL_HOST
 ```
 
+##### DC_HOST
+```
+server_ip
+```
+
+##### DC_PORT
+```
+ssh_port, e.g. 25000
+```
+
+##### DC_USER
+```
+github
+```
+
 ##### DC_KEY
 e.g.
 ```
-# generate ssh key for github user
-su - github
-ssh-keygen
+private_key, e.g. $server> cat ~/.ssh/id_rsa
+```
 
-# Paste private key in ~/.ssh/id_rsa to secret, DC_KEY
-cat ~/.ssh/id_rsa
+##### SSL
+cloudflare is used only when 
+* SSLVerifyClient require
+* SSLCACertificateFile /usr/local/apache2/conf/certs/cloudflare.pem
+
+e.g. 
+```json
+{
+  "cloudflare": {
+    "pem": "-----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----"
+  },
+  "domain1": {
+    "key": "-----BEGIN PRIVATE KEY-----xxx-----END PRIVATE KEY-----",
+    "pem": "-----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----"
+  },
+  "domain2": {
+    "key": "-----BEGIN PRIVATE KEY-----xxx-----END PRIVATE KEY-----",
+    "pem": "-----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----"
+  },
+  "...": {}
+}
+```
+
+##### PHP_PARAMS
+e.g.
+```
+# database credentials for web1
+ProxyFCGISetEnvIf "true" web1 "mysql:a_db:a_user:a_passwd"
+
+# database credentials for web1
+ProxyFCGISetEnvIf "true" web2 "mysql:b_db:b_user:b_passwd"
+``` 
+
+##### PMA_ABSOLUTE_URI
+e.g. consider ./apache/sites-available/pma.conf
+```
+http://pma.domain_name/server_name
+```
+
+##### SITE_AUTH
+generate passowrd with htpasswd
+```
+# create user:htpasswd for user
+htpasswd -n user
+# output [user]:[htpasswd]
+```
+
+e.g. add such
+```json
+{
+  "domain1": "[user]:[htpasswd]",
+  "domain2": "[user]:[htpasswd]",
+  "...": "..."
+}
 ```
 
 ##### MYSQL_INIT
@@ -222,6 +288,7 @@ GRANT ALL ON *.* TO 'root'@'%';
 FLUSH PRIVILEGES;
 ```
 
+
 ##### MYSQL_TEST
 e.g.
 ```
@@ -233,42 +300,14 @@ echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
 ```
 
-##### PHP_PARAMS
-e.g.
+##### MYSQL_ROOT_PASSWORD
 ```
-# database credentials for web1
-fastcgi_param web1 'mysql:a_db:a_user:a_passwd';
-
-# database credentials for web1
-fastcgi_param web2 'mysql:b_db:b_user:b_passwd';
-``` 
-
-##### SSL
-e.g.
-```json
-{
-  "cloudflare": {
-    "pem": "-----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----"
-  },
-  "domain": {
-    "key": "-----BEGIN PRIVATE KEY-----xxx-----END PRIVATE KEY-----",
-    "pem": "-----BEGIN CERTIFICATE-----xxx-----END CERTIFICATE-----"
-  }
-}
+e.g secrets
 ```
 
-##### SITE_AUTH
+##### MYSQL_HOST
 ```
-# create user:htpasswd for user
-htpasswd -n user
-# output [user]:[htpasswd]
-```
-
-e.g.
-```json
-{
-  "domain": "[user]:[htpasswd]"
-}
+mysql
 ```
 
 
@@ -277,78 +316,82 @@ for a NEW WEBSITE xxx
 
 ##### Configurations
 * Source code must be under "./www/xxx"
-* Nginx proxy configuration "./nginx/sites-available/xxx.conf", ref."./nginx/sites-available/A.conf" (considering http/https)
+* Apache2/Httpd proxy configuration "./apache/sites-available/xxx.conf", 
+ref."./apache/sites-available/fantomviet.conf" (considering http/https)
+    
+    ref.
+    
+    [Docker Apache2](https://hub.docker.com/_/httpd)
+    
+    [ct-apache-docker-containers](https://www.cloudreach.com/en/resources/blog/ct-apache-docker-containers/)
+    
+    [redirect-http-to-https-in-apache](https://linuxize.com/post/redirect-http-to-https-in-apache/)
+    
+    [mod_proxy_fcgi](https://httpd.apache.org/docs/2.4/mod/mod_proxy_fcgi.html)
+
+    [proxy](https://gist.github.com/soupmatt/1058580)
     ```
-      server {
-        listen 80;
-        listen [::]:80;
-      
-        # your domain
-        server_name SITE_DOMAIN;
-        # ROOT SOURCE, where to load the index.php
-        root /var/www/html/xxx/public;
-      
-        index index.php index.html;
-        error_log  /var/log/nginx/error.log;
-        access_log /var/log/nginx/access.log;
-      
-        proxy_cache                     off;
-      
-        # Headers for client browser NOCACHE + CORS origin filter
-        add_header 'Cache-Control' 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0';
-        expires off;
-        add_header    'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
-        add_header    'Access-Control-Allow-Headers' 'Origin, X-Requested-With, Content-Type, Accept' always;
-      
-        location / {
-          try_files $uri $uri/ =404;
-          # Relate to e.g secret "SITE_AUTH_A"
-          #auth_basic "Restricted Content";
-          #auth_basic_user_file /etc/nginx/conf.d/.apasswd;
-      
-          # pass the PHP scripts to FastCGI server listening on docker php
-          location ~* "\.php$" {
-            #	include snippets/fastcgi-php.conf;      
-            try_files $uri =404;
-            fastcgi_split_path_info ^(.+\.php)(/.+)$;
-            # All php sources are routed to PHP container (container name php), port 9000
-            fastcgi_pass php:9000;
-            fastcgi_index index.php;
-      
-            include fastcgi_params;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            fastcgi_param PATH_INFO $fastcgi_path_info;
-            include /etc/nginx/conf.d/credentials.conf;
-          }
-        }    
-      }
+    ServerName [sub].domain-name
+    
+    LoadModule socache_shmcb_module /usr/local/apache2/modules/mod_socache_shmcb.so
+    LoadModule ssl_module /usr/local/apache2/modules/mod_ssl.so
+    LoadModule deflate_module /usr/local/apache2/modules/mod_deflate.so
+    LoadModule proxy_module /usr/local/apache2/modules/mod_proxy.so
+    LoadModule proxy_fcgi_module /usr/local/apache2/modules/mod_proxy_fcgi.so
+    
+    Include /usr/local/apache2/conf/extra/httpd-ssl.conf
+    
+    <VirtualHost *:80>
+      Redirect permanent / https://[sub].domain-name/
+    
+    </VirtualHost>
+    
+    <VirtualHost *:443>
+      SSLEngine on
+      SSLProtocol -all +TLSv1.2 +TLSv1.3
+      SSLCertificateFile /usr/local/apache2/conf/certs/domain-name.pem
+      SSLCertificateKeyFile /usr/local/apache2/conf/certs/domain-name.key
+    
+      DocumentRoot /usr/local/apache2/htdocs/xxx/
+    
+      # Proxy .php requests to port 9000 of the php container
+      ProxyPassMatch ^/(.*\.php(/.*)?)$ fcgi://php:9000/usr/local/apache2/htdocs/xxx/$1
+      # include php params to $_SERVER, e.g. mysql credentials
+      include /usr/local/apache2/conf/php-params/credentials.conf;
+    
+      <Directory /usr/local/apache2/htdocs/xxx/ >
+        DirectoryIndex index.php
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+      </Directory>
+    
+    </VirtualHost>
     ```
 * Some credentials can be added to secret "PHP_PARAMS", e.g. mysql credential
     ```
     # database credentials for web1
-    fastcgi_param web1 'mysql:a_db:a_user:a_passwd';
+    ProxyFCGISetEnvIf "true" web1 "mysql:a_db:a_user:a_passwd"
     
     # database credentials for web1
-    fastcgi_param web2 'mysql:b_db:b_user:b_passwd';
+    ProxyFCGISetEnvIf "true" web2 "mysql:b_db:b_user:b_passwd"
   
     # ...
     ```
-    * including it in proxy config under "./nginx/sites-available/xxx.conf"
+    * including it in virtualhost config under "./apache/sites-available/xxx.conf"
         ```
-        server {
-          # ...
+        <VirtualHost *:443>
+          # SSL config ...
         
-          location / {
-            # ...
-            # pass the PHP scripts to FastCGI server listening on docker php
-            location ~* "\.php$" {
-              # ...
-      
-              # here config is included, and mapped to $_SERVER of php
-              include /etc/nginx/conf.d/credentials.conf;
-            }
-          }
-        }
+          DocumentRoot /usr/local/apache2/htdocs/xxx/
+        
+          # Proxy .php requests to port 9000 of the php container
+          ProxyPassMatch ^/(.*\.php(/.*)?)$ fcgi://php:9000/usr/local/apache2/htdocs/xxx/$1
+          # include php params to $_SERVER, e.g. mysql credentials
+          include /usr/local/apache2/conf/php-params/credentials.conf;
+        
+          # Directory/Location/... config     
+        </VirtualHost>
         ```
     * using it in source, e.g. under "./www/xxx/app/Config/Database.php"
         ```
@@ -378,7 +421,7 @@ if the site xxx e.g. uses "composer" for such thing
         #the dependencies are generated to /app inside the container, 
         #but are mounted by the volumn outsite. 
         #It should be synced from inside to outside 
-        #and used in nginx and php containers.
+        #and used in apache2 and php containers.
         - "./www/xxx:/app" 
     ```
 
@@ -429,9 +472,9 @@ Under "./.github/worflows/deploy.yml"
 * Write 
     * MYSQL_INIT to ./mysql/init/init.sql
     * MYSQL_TEST to ./mysql/init/test.sh
-    * PHP_PARAMS to ./nginx/conf.d/credentials.conf
-    * SERVER_KEY to ./nginx/ssl/server.key
-    * SERVER_PEM to ./nginx/ssl/server.pem
+    * PHP_PARAMS to ./apache/conf.d/credentials.conf
+    * SERVER_KEY to ./apache/ssl/server.key
+    * SERVER_PEM to ./apache/ssl/server.pem
 * SSH create tmp dir 
     * TMP_DIR: ~/tmp/[organization]/[repo name]
 * Copy "." (all sources) to server, per scp, with secrets: DC_HOST, DC_KEY, DC_PORT, DC_USER

@@ -6,7 +6,9 @@ def remove_subdirs(d):
     for root, dirs, files in os.walk(d, topdown=False):
         for name in dirs:
             os.system(f"rm -rf {os.path.join(root, name)}")
-
+        for name in files:
+            if name.lower().endswith(('.pem', '.key')):
+                os.system(f"rm -f {os.path.join(root, name)}")
 
 def mk_dir(dir_name):
     if not os.path.exists(dir_name):
@@ -15,7 +17,7 @@ def mk_dir(dir_name):
 
 
 # ./apache/ssl/ssl.json
-# parse json file to key, pem for each site under "/nginx/ssl/[site]/*.[key|pem]"
+# parse json file to key, pem for each site under "/apache/ssl/[site]/*.[key|pem]"
 try:
     ssl_dir = "./apache/ssl/wsites"
     remove_subdirs(ssl_dir)
@@ -41,7 +43,7 @@ except Exception as e:
 
 
 # ./apache/conf.d/auth.json
-# parse json auth for each site under "nginx/conf.d/.[site]passwd
+# parse json auth for each site under "apache/conf.d/.[site]passwd
 try:
     conf_dir = "./apache/conf.d/wsites"
     remove_subdirs(conf_dir)
