@@ -195,8 +195,8 @@ e.g.
 private_key, e.g. $server> cat ~/.ssh/id_rsa
 ```
 
-##### DC_USER
-in case DC_KEY is not inuse 
+##### DC_PASS
+in case DC_PASS is not inuse 
 ```
 xxx
 ```
