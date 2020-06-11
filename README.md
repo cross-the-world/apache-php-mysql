@@ -1,26 +1,5 @@
 # APACHE2 PHP PHPMYADMIN MYSQL COMPOSER
 
-## Hosting
-**Database management on server "nginx-docker"**
-
-[phpmyadmin](https://pma.crossworld.ga/nginx-docker/)
-
-**Bots**
-
-[bots.79btc.com](https://bots.79btc.com)
-[bot tramanh](https://bots.79btc.com/tramanh)
-
-
-**Websites**
-
-[fantomviet.com](https://fantomviet.79btc.com)
-
-[vietnamnhat.com](https://vietnamnhat.79btc.com)
-
-[79btc.com](https://79btc.com)
-
-
-
 ## Pre-Install
 
 ### Python 
@@ -76,6 +55,23 @@ shutdown -r now
 ssh github@ip -p 25000 -i ~/.ssh/github_xxx
 ```
 
+**SSH**
+```
+ref. https://www.howtogeek.com/168119/fixing-warning-unprotected-private-key-file-on-linux/
+su - github
+
+ssh-keygen
+
+# ~/.ssh/id_rsa for DC_KEY of github secret setting
+cat ~/.ssh/id_rsa > ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/id_rsa
+chmod 600 ~/.ssh/id_rsa.pub
+
+su - root
+sudo systemctl restart ssh
+```
+
+
 ### Mysql client
 ```
 sudo apt install mysql-client-core-8.0 # Ubuntu 20.04
@@ -105,6 +101,8 @@ sudo chmod 777 -R /tmp
 ```
 
 ### Github-runner
+ONLY when runner still not be deployed and should be deployed on such the server 
+
 [Repo github-runner docker](https://github.com/cross-the-world/github-runner)
 
 **Add** these env variables to "~/.profile" 
@@ -129,22 +127,6 @@ docker run -it --name github-runner \
 ```
 **Open** [https://github.com/organizations/name/settings/actions](https://github.com/organizations/name/settings/actions) 
 and check whether runner is ready
-
-**SSH**
-```
-ref. https://www.howtogeek.com/168119/fixing-warning-unprotected-private-key-file-on-linux/
-su - github
-
-ssh-keygen
-
-# ~/.ssh/id_rsa for DC_KEY of github secret setting
-cat ~/.ssh/id_rsa > ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/id_rsa
-chmod 600 ~/.ssh/id_rsa.pub
-
-su - root
-sudo systemctl restart ssh
-```
 
 
 ## Secrets
@@ -204,13 +186,19 @@ ssh_port, e.g. 25000
 
 ##### DC_USER
 ```
-github
+user, e.g. github
 ```
 
 ##### DC_KEY
 e.g.
 ```
 private_key, e.g. $server> cat ~/.ssh/id_rsa
+```
+
+##### DC_USER
+in case DC_KEY is not inuse 
+```
+xxx
 ```
 
 ##### SSL
@@ -287,7 +275,6 @@ CREATE USER 'root'@'%' IDENTIFIED BY 'secret';
 GRANT ALL ON *.* TO 'root'@'%';
 FLUSH PRIVILEGES;
 ```
-
 
 ##### MYSQL_TEST
 e.g.
@@ -429,6 +416,7 @@ if the site xxx e.g. uses "composer" for such thing
 ## Deploy 
 
 ### Manual for test
+NOTE: test with https/ssl might not work
 ```
 ## add domain to localhost
 # e.g. macos
